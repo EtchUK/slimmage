@@ -86,6 +86,27 @@
       target.parentNode.removeChild(temp);
       return pixels;
     };
+    s['getAvailableHeight'] = function (target) {
+        
+        var container = target.parentNode
+        var parentOverflow = container.style.overflow;
+        container.style.overflow = "hidden";
+        var val = s.getCssValue(container, "height");
+        //We can return pixels directly, but not other units
+        if (val.slice(-2) == "px") return parseFloat(val.slice(0, -2));
+
+        //Create a temporary sibling div to resolve units into pixels.
+        var temp = document.createElement("div");
+        temp.style.overflow = temp.style.visibility = "hidden";
+        container.appendChild(temp);
+        temp.style.height = val;
+        var pixels = temp.offsetHeight;
+        container.removeChild(temp);
+
+        container.style.overflow = parentOverflow;
+        return pixels;
+    };
+
 
     s.nodesToArray = function (nodeList) {
         var array = [];
@@ -124,13 +145,14 @@
     };
 
     //Expects virtual, not device pixel width
-    s['getImageInfo'] = function (elementWidth, previousSrc, previousPixelWidth, previousElement) {
+    s['getImageInfo'] = function (elementWidth, previousSrc, previousPixelWidth, previousElement, elementHeight) {
         var data = {
             'webp': s['webp'],
             'width': elementWidth,
             'dpr': window.devicePixelRatio || 1,
             'src': previousSrc, 
-            'element': previousElement
+            'element': previousElement,
+            'height': elementHeight
         };
         //Determine quality percentage
         var high_density = s['webp'] ? 65 : s['jpegRetinaQuality'];
@@ -140,11 +162,18 @@
         //Calculate raw pixels using devicePixelRatio. Limit size to maxWidth.
         var idealWidth = elementWidth * data['dpr']; 
         //Minimize variants for caching improvements; round up to nearest multiple of widthStep
-        data['requestedWidth'] = Math.min(s['maxWidth'], //Limit size to maxWidth
+
+        var originalRequestedWidth = idealWidth;
+        data.requestedWidth = Math.min(s['maxWidth'], //Limit size to maxWidth
                                   Math.round( //Round in case widthStep isn't an integer
                                     Math.ceil(idealWidth / s['widthStep']) * s['widthStep'] //Divide, ceiling, then multiply
                                             )
                                           );
+
+        if (data.height) {
+            data.height = Math.round((data.requestedWidth / originalRequestedWidth) * data.height * data.dpr);
+            data.height = data.height - (data.height % s['widthStep']) + s['widthStep'];
+        }
 
 
         var a = s['adjustImageParameters'];
@@ -153,7 +182,7 @@
         }
         var finalWidth = data['requestedWidth'];
 
-        if (finalWidth > previousPixelWidth) {
+        if (finalWidth > previousPixelWidth || data.height) {
             //Never request a smaller image once the larger one has already started loading
             var u = {}; //For storing raw pairs
             var c = {}; //For storing relevant parsed info
@@ -187,24 +216,25 @@
                 if (k.match(/^quality/i)) { return d + "quality=" + data['quality']; }
                 
                 if (k.match(/^(w|width|maxwidth)$/i)) { return d + k + "=" + c.w;}
-                if (k.match(/^(h|height|maxheight)$/i)) { return d + k + "=" + c.h;}
+                if (k.match(/^(h|height|maxheight)$/i)) { return d + k + "=" + (data.height || c.h);}
                 
                 return p;
               }, 
               //Injector
               function(q){ return q;});
             
-            return {'src': newSrc, 'data-pixel-width': finalWidth};
+            return {'src': newSrc, 'data-pixel-width': finalWidth, 'data-pixel-height': data.height};
         }
         return null;
     };
-    s['adjustImageSrc'] = function (img, previousSrc) {
+    s['adjustImageSrc'] = function (img, previousSrc, adjustHeight) {
 
         var cssMaxWidth = s['getCssPixels'](img, 'max-width');
         var result = s['getImageInfo'](cssMaxWidth,
                                        previousSrc,
                                        img.getAttribute('data-pixel-width') | 0,
-                                       img);
+                                       img,
+                                       adjustHeight ? s.getAvailableHeight(img) : null);
         
         if (result){
           img.src = result['src'];
@@ -276,6 +306,9 @@
                         s.setAttr(ci,"data-src", ci.src);
                         ci.src = "";
                     }
+                    if (ns.getAttribute("data-slimmage-adjust-height") !== null) {
+                        ci.setAttribute("data-slimmage-adjust-height", "");
+                    }
                     s.setAttr(ci,"data-slimmage", true);
                     ns.parentNode.insertBefore(ci, ns);
                     newImages++;
@@ -296,7 +329,7 @@
         for (k = 0, kl = images.length; k < kl; k++) {
             if (images[k].getAttribute("data-slimmage") !== null) {
                 var previousSrc = images[k].getAttribute("data-src") || images[k].src;
-                s['adjustImageSrc'](images[k], previousSrc);
+                s['adjustImageSrc'](images[k], previousSrc, images[k].getAttribute("data-slimmage-adjust-height") !== null);
                 totalImages++;
             }
         }

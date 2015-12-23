@@ -1,6 +1,22 @@
 ## Slimmage - sane & simple responsive images
 [![master](https://img.shields.io/travis/imazen/slimmage/master.svg?label=master)](https://travis-ci.org/imazen/slimmage/builds) [![unstable](https://img.shields.io/travis/imazen/slimmage/unstable.svg?label=unstable)](https://travis-ci.org/imazen/slimmage/builds) 
 
+---------------------------
+###Modified by Etch (23/12/2015)
+Modified by Etch to allow images to be requested to fill their container's width and height. Optionally use as follows:
+
+```html
+<div style="position: relative; width: 100%; height: 200px; overflow: hidden;">
+  <noscript data-slimmage data-slimmage-adjust-height data-img-src="/images/image.jpg">
+    <img src="http://z.zr.io/ri/1s.jpg?width=150&height=100" />
+  </noscript>
+</div>
+```    
+It's also likely that you will want to center the image within the container to ensure the central portion of the image is shown.
+
+------------------------------------------
+
+
 Your wait for a sane, easily managed path to responsive images has now ended.
 
 **With Slimmage, *CSS* controls which image size is downloaded, not HTML**
