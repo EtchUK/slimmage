@@ -352,7 +352,6 @@
     if (w.addEventListener) {
         w.addEventListener("resize", function () {
           if (w.innerWidth != width || w.innerHeight != height) {
-                console.log("window resize");
                 width = w.innerWidth;
                 height = w.innerHeight;
                 s.cr(500);
