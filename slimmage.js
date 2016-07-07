@@ -11,7 +11,7 @@
     "use strict";
 
     var s =  window['slimmage'] || {};
-    var width = w.innerWidth, height = w.innerHeight;
+    var width = w.innerWidth;
     window['slimmage'] = s;
     if (s['verbose'] === undefined) {           s['verbose'] = false;}
     if (s['tryWebP'] === undefined) {           s['tryWebP'] = false;}
@@ -351,9 +351,8 @@
     // Run on resize and domready (w.load as a fallback)
     if (w.addEventListener) {
         w.addEventListener("resize", function () {
-          if (w.innerWidth != width || w.innerHeight != height) {
+          if (w.innerWidth != width) {
                 width = w.innerWidth;
-                height = w.innerHeight;
                 s.cr(500);
             } 
           
