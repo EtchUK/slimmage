@@ -6,7 +6,7 @@
    Closure Compiler's advanced mode from breaking APIs */
 /*jshint sub:true*/
 
-(function (w) { //w==window
+function init (w) { //w==window
     // Enable strict mode
     "use strict";
 
@@ -369,3 +369,5 @@
     }
     
 }(this));
+
+module.exports = { init };
