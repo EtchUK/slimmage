@@ -2,6 +2,7 @@
   "name": "slimmage",
   "description": "Sane responsive images in the browser",
   "version": "0.4.1",
+  "main": "slimmage.js",
   "homepage": "https://github.com/imazen/slimmage",
   "scripts": {
     "test": "grunt test",
