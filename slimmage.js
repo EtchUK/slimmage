@@ -368,6 +368,6 @@ function init (w) { //w==window
         w.attachEvent("onresize",  function () { s.cr(500); });
     }
     
-}(this));
+}(this);
 
 module.exports = { init };
