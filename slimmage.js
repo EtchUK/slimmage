@@ -370,4 +370,4 @@ function init (w) { //w==window
     
 }(this);
 
-module.exports = { init };
+module.exports = { init: init };
